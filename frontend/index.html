@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSort AI — Compare Smarter. Decide Faster.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Link to external CSS -->
+  <link href="./style.css" rel="stylesheet">
+</head>
+<body data-theme="dark">
+
+<nav class="topnav">
+  <div class="nav-inner">
+    <div class="brand" data-nav="home">
+      <div class="brand-mark">S</div>
+      <div class="brand-name">SmartSort</div>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <a href="#home" data-nav="home">Home</a>
+      <a href="#compare" data-nav="compare">Compare</a>
+      <a href="#history" data-nav="history">History</a>
+      <a href="#about" data-nav="about">About</a>
+    </div>
+    <div class="nav-right">
+      <button class="btn-ghost" id="authBtn" style="padding:9px 16px; font-size:13.5px;">Log in</button>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle dark or light theme" title="Toggle theme">
+        <svg class="icon" id="themeIcon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="#home" data-nav="home">Home</a>
+    <a href="#compare" data-nav="compare">Compare</a>
+    <a href="#history" data-nav="history">History</a>
+    <a href="#about" data-nav="about">About</a>
+  </div>
+</nav>
+
+<!-- ============ AUTH MODAL ============ -->
+<div class="modal-overlay" id="authOverlay">
+  <div class="modal-box">
+    <button class="modal-close" id="authClose" aria-label="Close">&times;</button>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" type="button">Log in</button>
+      <button class="auth-tab" id="tabRegister" type="button">Sign up</button>
+    </div>
+
+    <form id="loginForm" class="auth-form">
+      <div class="field plain"><label for="loginEmail">Email</label><input type="email" id="loginEmail" required></div>
+      <div class="field plain"><label for="loginPassword">Password</label><input type="password" id="loginPassword" required minlength="8"></div>
+      <div class="auth-error" id="loginError"></div>
+      <button type="submit" class="btn-primary" style="width:100%; margin-top:6px;">Log in</button>
+    </form>
+
+    <form id="registerForm" class="auth-form" style="display:none;">
+      <div class="field plain"><label for="registerName">Name</label><input type="text" id="registerName" required></div>
+      <div class="field plain"><label for="registerEmail">Email</label><input type="email" id="registerEmail" required></div>
+      <div class="field plain"><label for="registerPassword">Password</label><input type="password" id="registerPassword" required minlength="8"></div>
+      <div class="auth-error" id="registerError"></div>
+      <button type="submit" class="btn-primary" style="width:100%; margin-top:6px;">Create account</button>
+    </form>
+
+    <p class="auth-hint">Logging in saves your comparison history to your account instead of just this browser tab.</p>
+  </div>
+</div>
+
+<!-- ============ HOME ============ -->
+<section class="page" id="page-home">
+  <div class="wrap">
+    <div class="hero">
+      <h1>Compare Smarter.<br><em>Decide</em> Faster.</h1>
+      <p>Tell SmartSort any two products and get an instant AI-powered breakdown — specs, ratings, pros &amp; cons, and a clear verdict on which one to buy.</p>
+      <button class="btn-primary" data-nav="compare">Start Comparing</button>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="fi"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></div>
+        <h3>AI-Powered Analysis</h3><p>Claude reads between the spec sheets to judge what actually matters.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fi"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div>
+        <h3>Instant Results</h3><p>A full comparison in seconds — no tab-hopping between review sites.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fi"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg></div>
+        <h3>Structured Insights</h3><p>Specs, ratings, pros &amp; cons, and buying advice — organized, not a wall of text.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fi"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-4.4-9.5-9C.7 8.4 3 5 6.5 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.5 0 5.8 3.4 4 7-2.5 4.6-9.5 9-9.5 9z"/></svg></div>
+        <h3>Save &amp; Revisit</h3><p>Star your favorite comparisons and find them again in History.</p>
+      </div>
+    </div>
+
+    <div class="section-eyebrow">Workflow</div>
+    <div class="section-title">How it works</div>
+    <div class="steps">
+      <div class="step"><div class="num">01</div><h4>Enter two products</h4><p>Just names — SmartSort figures out the rest.</p></div>
+      <div class="step"><div class="num">02</div><h4>Pick a category</h4><p>Add an optional purpose so advice fits your use case.</p></div>
+      <div class="step"><div class="num">03</div><h4>Claude analyzes</h4><p>Specs, ratings, and trade-offs get weighed side by side.</p></div>
+      <div class="step"><div class="num">04</div><h4>Get your verdict</h4><p>A clear winner, plus buying advice you can act on.</p></div>
+    </div>
+
+    <div class="popular-wrap">
+      <div class="section-eyebrow">Popular</div>
+      <div class="section-title">Comparisons people are running</div>
+      <div class="chips" id="popularChipsHome"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMPARE ============ -->
+<section class="page" id="page-compare">
+  <div class="wrap">
+    <div class="page-header">
+      <h2>Let's compare.</h2>
+      <p>Add two products, a category, and — if you like — what you'll actually use it for.</p>
+    </div>
+
+    <form class="compare-card" id="compareForm" autocomplete="off">
+      <div class="fields">
+        <div class="field a autocomplete">
+          <label for="productA"><span class="dot amber"></span>Product 1</label>
+          <input type="text" id="productA" placeholder="e.g. iPhone 16 Pro" required>
+          <div class="ac-list" id="acA"></div>
+        </div>
+        <div class="vs-divider">VS</div>
+        <div class="field b autocomplete">
+          <label for="productB"><span class="dot teal"></span>Product 2</label>
+          <input type="text" id="productB" placeholder="e.g. Samsung Galaxy S25 Ultra" required>
+          <div class="ac-list" id="acB"></div>
+        </div>
+      </div>
+
+      <div class="extra-fields">
+        <div class="field plain">
+          <label for="category">Category</label>
+<input type="text" id="category" list="categoryOptions" placeholder="e.g. Smartphones, Shoes, Furniture..." autocomplete="off">
+<datalist id="categoryOptions">
+  <option value="Smartphones">
+  <option value="Laptops">
+  <option value="Headphones & Audio">
+  <option value="Home Appliances">
+  <option value="Cameras">
+  <option value="Wearables">
+  <option value="Gaming">
+  <option value="Vehicles">
+  <option value="Fashion & Footwear">
+  <option value="Furniture">
+  <option value="Beauty & Skincare">
+  <option value="Sports & Fitness">
+  <option value="Kitchen & Cookware">
+  <option value="Toys & Games">
+  <option value="Books">
+  <option value="Groceries & Food">
+</datalist>
+        </div>
+        <div class="field plain">
+          <label for="purpose">Purpose <span style="color:var(--paper-dimmer); font-weight:400;">(optional)</span></label>
+          <input type="text" id="purpose" placeholder="e.g. photography, gaming, daily commute">
+        </div>
+      </div>
+
+      <div class="compare-actions">
+        <button type="submit" class="btn-primary" id="compareBtn">Compare products</button>
+      </div>
+    </form>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="loading" id="loading">
+      <div class="sort-bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+      <p id="loadingText">SORTING SIGNAL FROM SPEC SHEET…</p>
+    </div>
+
+    <div class="popular-inline">
+      <div class="lbl">TRY A POPULAR COMPARISON</div>
+      <div class="chips" id="popularChipsCompare"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section class="page" id="page-results">
+  <div class="wrap">
+    <div class="result-toolbar">
+      <button class="btn-ghost" id="saveHistoryBtn"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-4.4-9.5-9C.7 8.4 3 5 6.5 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.5 0 5.8 3.4 4 7-2.5 4.6-9.5 9-9.5 9z"/></svg> Save to History</button>
+      <button class="btn-ghost" id="shareBtn"><svg class="icon" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-4.6M8.2 13.2l7.6 4.6"/></svg> Share</button>
+      <button class="btn-ghost" id="pdfBtn"><svg class="icon" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/></svg> Download PDF</button>
+    </div>
+    <div id="resultsContent"></div>
+  </div>
+</section>
+
+<!-- ============ HISTORY ============ -->
+<section class="page" id="page-history">
+  <div class="wrap">
+    <div class="page-header"><h2>Your history</h2><p>Comparisons you've saved this session — search, revisit, favorite, or remove them.</p></div>
+    <div class="history-toolbar">
+      <input type="text" class="history-search" id="historySearch" placeholder="Search saved comparisons…">
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section class="page" id="page-about">
+  <div class="wrap">
+    <div class="page-header"><h2>About SmartSort AI</h2><p>Smart Product Comparison &amp; Recommendation System.</p></div>
+
+    <div style="max-width:720px; margin:40px auto 0;">
+      <div class="about-section">
+        <h3>Project overview</h3>
+        <p>SmartSort AI is an AI-powered web application that compares two products and returns AI-generated summaries, specifications, ratings, pros &amp; cons, buying advice, and a clear recommendation.</p>
+      </div>
+      <div class="about-section">
+        <h3>Problem statement</h3>
+        <p>Consumers spend significant time comparing products across multiple websites. SmartSort AI simplifies this with instant, AI-powered comparisons in one place.</p>
+      </div>
+      <div class="about-section">
+        <h3>Objectives</h3>
+        <ul class="obj-list">
+          <li>Simplify product comparison</li>
+          <li>Save research time</li>
+          <li>Provide structured AI insights</li>
+          <li>Help users make informed decisions</li>
+        </ul>
+      </div>
+      <div class="about-section">
+        <h3>Technology stack</h3>
+        <div class="stack-badges">
+          <div class="stack-badge"><span class="k">Frontend:</span> HTML / CSS / JavaScript</div>
+          <div class="stack-badge"><span class="k">Backend:</span> Node.js + Express.js</div>
+          <div class="stack-badge"><span class="k">Database:</span> MongoDB</div>
+          <div class="stack-badge"><span class="k">AI:</span> Claude Sonnet API</div>
+        </div>
+      </div>
+      <div class="about-section">
+        <h3>Workflow</h3>
+        <div class="workflow-line">
+          <span class="wf-step">Open site</span><span class="arrow">→</span>
+          <span class="wf-step">Enter products</span><span class="arrow">→</span>
+          <span class="wf-step">Select category / purpose</span><span class="arrow">→</span>
+          <span class="wf-step">Compare</span><span class="arrow">→</span>
+          <span class="wf-step">Claude analyzes</span><span class="arrow">→</span>
+          <span class="wf-step">Results</span>
+        </div>
+      </div>
+      <div class="about-section">
+        <h3>Benefits</h3>
+        <ul class="obj-list">
+          <li>Cuts product research from tabs-and-hours to one screen and seconds</li>
+          <li>Consistent, structured criteria instead of scattered review opinions</li>
+          <li>Buying advice tailored to a stated purpose, not just generic specs</li>
+        </ul>
+      </div>
+      <div class="note-card">
+        <strong>Current build note:</strong> this deployment runs entirely client-side and calls the Claude Sonnet API directly from the browser. History here is session-only (in-memory). Login/registration and persistent, multi-device history need the Node.js + Express + MongoDB backend from the PRD — ask and it can be built as a companion service.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">SmartSort AI — AI-assisted comparison. Verify specs before purchase.</footer>
+
+<!-- Link to external JS -->
+<script type="module" src="script.js"></script>
+</body>
+</html>
