@@ -1,6 +1,5 @@
 /* ---------------- Config ---------------- */
-// Point this at your deployed backend (see /backend in this project).
-//const API_BASE = (window.SMARTSORT_API_BASE) || 'http://localhost:5000/api';
+// Frontend calls /api (Vite proxy in dev, or same-origin when served by the backend).
 const API_BASE = (window.SMARTSORT_API_BASE) || '/api';
 
 /* ---------------- State ---------------- */
@@ -141,16 +140,16 @@ async function runComparison(forceRefresh = false){
   const category = document.getElementById('category').value;
   const purpose = document.getElementById('purpose').value.trim();
   if(!productA || !productB) return;
-  
+
   isComparing = true;
   loading.style.display = 'block';
   compareBtn.disabled = true;
   compareBtn.textContent = 'Comparing…';
 
   let msgIdx = 0;
-  const msgInterval = setInterval(() => { 
-    msgIdx = (msgIdx+1) % loadingMessages.length; 
-    loadingText.textContent = loadingMessages[msgIdx]; 
+  const msgInterval = setInterval(() => {
+    msgIdx = (msgIdx+1) % loadingMessages.length;
+    loadingText.textContent = loadingMessages[msgIdx];
   }, 1300);
 
   try {
@@ -173,23 +172,33 @@ async function runComparison(forceRefresh = false){
 }
 
 async function fetchComparison(productA, productB, category, purpose, forceRefresh = false){
-  const response = await fetch(`${API_BASE}/compare`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
-    body: JSON.stringify({ productA, productB, category, purpose, forceRefresh })
-  });
-  const data = await response.json();
-  if(!response.ok){ 
-    throw new Error(data.error || data.message || ("API error " + response.status)); 
+  let response;
+  try {
+    response = await fetch(`${API_BASE}/compare`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ productA, productB, category, purpose, forceRefresh })
+    });
+  } catch (e) {
+    throw new Error("Can't reach the server. Is the backend running?");
   }
+
+  const text = await response.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch {}
+
+  if (!response.ok) {
+    throw new Error(data?.error || data?.message || `Server error ${response.status}`);
+  }
+  if (!data) throw new Error("Server returned an empty response.");
   return data;
 }
 
 /* ---------------- Helpers & Rendering ---------------- */
-function esc(str){ 
-  const d = document.createElement('div'); 
-  d.textContent = str == null ? '' : String(str); 
-  return d.innerHTML; 
+function esc(str){
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : String(str);
+  return d.innerHTML;
 }
 
 function renderResults(data){
@@ -307,12 +316,13 @@ function renderResults(data){
       navigate('compare');
     }
     if (e.target.id === 'refreshBtn' || e.target.closest('#refreshBtn')) {
-      document.getElementById('productA').value = '';
-      document.getElementById('productB').value = '';
-      document.getElementById('purpose').value = '';
-      currentResult = null;
-      currentInputs = null;
+      if (!currentInputs) return;
+      document.getElementById('productA').value = currentInputs.productA;
+      document.getElementById('productB').value = currentInputs.productB;
+      document.getElementById('category').value = currentInputs.category || '';
+      document.getElementById('purpose').value = currentInputs.purpose || '';
       navigate('compare');
+      runComparison(true);
     }
   };
 }
@@ -365,6 +375,12 @@ function applyAuthSuccess(data){
   if(location.hash.replace('#','') === 'history') renderHistory();
 }
 
+// Safe JSON reader for auth/history calls (handles empty bodies)
+async function readJson(res){
+  const text = await res.text();
+  try { return text ? JSON.parse(text) : {}; } catch { return {}; }
+}
+
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const errEl = document.getElementById('loginError'); errEl.textContent = '';
@@ -375,7 +391,7 @@ loginForm.addEventListener('submit', async (e) => {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    const data = await res.json();
+    const data = await readJson(res);
     if(!res.ok) throw new Error(data.error || 'Could not log in');
     applyAuthSuccess(data);
   } catch(err){ errEl.textContent = err.message; }
@@ -392,7 +408,7 @@ registerForm.addEventListener('submit', async (e) => {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password })
     });
-    const data = await res.json();
+    const data = await readJson(res);
     if(!res.ok) throw new Error(data.error || 'Could not create account');
     applyAuthSuccess(data);
   } catch(err){ errEl.textContent = err.message; }
@@ -433,7 +449,7 @@ document.getElementById('saveHistoryBtn').addEventListener('click', async () => 
           result: currentResult
         })
       });
-      if(!res.ok){ const d = await res.json(); throw new Error(d.error || 'Could not save'); }
+      if(!res.ok){ const d = await readJson(res); throw new Error(d.error || 'Could not save'); }
       btn.innerHTML = 'Saved ✓';
     } catch(err){
       btn.innerHTML = 'Save failed';
@@ -484,7 +500,7 @@ async function renderHistory(){
     let items = [];
     try {
       const res = await fetch(`${API_BASE}/history${q ? '?q=' + encodeURIComponent(q) : ''}`, { headers: authHeaders() });
-      const data = await res.json();
+      const data = await readJson(res);
       if(!res.ok) throw new Error(data.error || 'Could not load history');
       items = data.items || [];
     } catch(err){
@@ -500,11 +516,11 @@ async function renderHistory(){
     listEl.innerHTML = items.map(h => historyRowHTML(h._id, h.productAName, h.productBName, h.category, h.favorite, new Date(h.createdAt))).join('');
     wireHistoryRow(listEl, items, {
       getId: (h) => h._id,
-      open: (h) => { 
-        currentResult = h.result; 
-        currentInputs = { productA: h.productAName, productB: h.productBName, category: h.category, purpose: h.purpose }; 
-        renderResults(h.result); 
-        navigate('results'); 
+      open: (h) => {
+        currentResult = h.result;
+        currentInputs = { productA: h.productAName, productB: h.productBName, category: h.category, purpose: h.purpose };
+        renderResults(h.result);
+        navigate('results');
       },
       toggleFav: async (h) => {
         const res = await fetch(`${API_BASE}/history/${h._id}/favorite`, { method: 'PATCH', headers: authHeaders() });
