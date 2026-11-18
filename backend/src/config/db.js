@@ -1,63 +1,104 @@
-// Simple in-memory "database". Swap this file for real Mongoose models
-// later — controllers only touch the methods below, so nothing else
-// needs to change when you add persistence.
+// MongoDB (Mongoose) data layer.
+// Same function names as the old in-memory version, but every function
+// is now async, so controllers must `await` them.
 
-const { randomUUID } = require('crypto');
+const mongoose = require('mongoose');
 
-const users = [];      // { _id, name, email, passwordHash }
-const historyItems = []; // { _id, userId, productAName, productBName, category, purpose, winner, favorite, result, createdAt }
+async function connectDB() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error('MONGODB_URI is not set in .env');
+  }
+  await mongoose.connect(uri);
+  console.log('✅ MongoDB connected');
+}
+
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    passwordHash: { type: String, required: true },
+  },
+  { timestamps: true }
+);
+
+const historySchema = new mongoose.Schema(
+  {
+    userId: { type: String, required: true, index: true },
+    productAName: { type: String, required: true },
+    productBName: { type: String, required: true },
+    category: String,
+    purpose: String,
+    winner: String,
+    favorite: { type: Boolean, default: false },
+    result: mongoose.Schema.Types.Mixed,
+  },
+  { timestamps: true }
+);
+
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+const History = mongoose.models.History || mongoose.model('History', historySchema);
+
+// Convert a lean Mongo document to the shape controllers expect (string _id)
+function clean(doc) {
+  if (!doc) return null;
+  return { ...doc, _id: String(doc._id) };
+}
+
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function isValidId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
 
 module.exports = {
+  connectDB,
   users: {
-    create(user) {
-      const record = { _id: randomUUID(), ...user };
-      users.push(record);
-      return record;
+    async create(user) {
+      const doc = await User.create(user);
+      return clean(doc.toObject());
     },
-    findByEmail(email) {
-      return users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    async findByEmail(email) {
+      if (!email) return null;
+      return clean(await User.findOne({ email: String(email).toLowerCase().trim() }).lean());
     },
-    findById(id) {
-      return users.find((u) => u._id === id);
-    }
+    async findById(id) {
+      if (!isValidId(id)) return null;
+      return clean(await User.findById(id).lean());
+    },
   },
   history: {
-    create(item) {
-      const record = {
-        _id: randomUUID(),
-        favorite: false,
-        createdAt: new Date().toISOString(),
-        ...item
-      };
-      historyItems.push(record);
-      return record;
+    async create(item) {
+      const doc = await History.create(item);
+      return clean(doc.toObject());
     },
-    findByUser(userId, query) {
-      let items = historyItems.filter((h) => h.userId === userId);
+    async findByUser(userId, query) {
+      const filter = { userId: String(userId) };
       if (query) {
-        const q = query.toLowerCase();
-        items = items.filter(
-          (h) =>
-            h.productAName.toLowerCase().includes(q) ||
-            h.productBName.toLowerCase().includes(q)
-        );
+        const rx = new RegExp(escapeRegex(query), 'i');
+        filter.$or = [{ productAName: rx }, { productBName: rx }];
       }
-      return items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const items = await History.find(filter).sort({ createdAt: -1 }).lean();
+      return items.map(clean);
     },
-    findById(id) {
-      return historyItems.find((h) => h._id === id);
+    async findById(id) {
+      if (!isValidId(id)) return null;
+      return clean(await History.findById(id).lean());
     },
-    toggleFavorite(id) {
-      const item = historyItems.find((h) => h._id === id);
+    async toggleFavorite(id) {
+      if (!isValidId(id)) return null;
+      const item = await History.findById(id);
       if (!item) return null;
       item.favorite = !item.favorite;
-      return item;
+      await item.save();
+      return clean(item.toObject());
     },
-    remove(id) {
-      const idx = historyItems.findIndex((h) => h._id === id);
-      if (idx === -1) return false;
-      historyItems.splice(idx, 1);
-      return true;
-    }
-  }
+    async remove(id) {
+      if (!isValidId(id)) return false;
+      const res = await History.deleteOne({ _id: id });
+      return res.deletedCount > 0;
+    },
+  },
 };
