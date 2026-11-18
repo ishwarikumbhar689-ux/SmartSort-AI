@@ -19,16 +19,20 @@ async function register(req, res) {
     if (password.length < 8) {
       return res.status(400).json({ error: 'Password must be at least 8 characters.' });
     }
-    if (db.users.findByEmail(email)) {
+    if (await db.users.findByEmail(email)) {
       return res.status(409).json({ error: 'An account with that email already exists.' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = db.users.create({ name, email, passwordHash });
+    const user = await db.users.create({ name, email, passwordHash });
     const token = signToken(user);
 
     return res.status(201).json({ token, user: publicUser(user) });
   } catch (err) {
+    // Duplicate email (unique index) if two requests race
+    if (err && err.code === 11000) {
+      return res.status(409).json({ error: 'An account with that email already exists.' });
+    }
     console.error('register error:', err);
     return res.status(500).json({ error: 'Could not register.' });
   }
@@ -41,7 +45,7 @@ async function login(req, res) {
       return res.status(400).json({ error: 'email and password are required.' });
     }
 
-    const user = db.users.findByEmail(email);
+    const user = await db.users.findByEmail(email);
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
@@ -60,9 +64,14 @@ async function login(req, res) {
 }
 
 async function me(req, res) {
-  const user = db.users.findById(req.userId);
-  if (!user) return res.status(404).json({ error: 'User not found.' });
-  return res.json({ user: publicUser(user) });
+  try {
+    const user = await db.users.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    return res.json({ user: publicUser(user) });
+  } catch (err) {
+    console.error('me error:', err);
+    return res.status(500).json({ error: 'Could not load user.' });
+  }
 }
 
 module.exports = { register, login, me };
