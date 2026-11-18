@@ -7,7 +7,7 @@ async function createHistory(req, res) {
       return res.status(400).json({ error: 'productAName, productBName, and result are required.' });
     }
 
-    const item = db.history.create({
+    const item = await db.history.create({
       userId: req.userId,
       productAName,
       productBName,
@@ -26,7 +26,7 @@ async function createHistory(req, res) {
 
 async function listHistory(req, res) {
   try {
-    const items = db.history.findByUser(req.userId, req.query.q);
+    const items = await db.history.findByUser(req.userId, req.query.q);
     return res.json({ items });
   } catch (err) {
     console.error('listHistory error:', err);
@@ -35,21 +35,31 @@ async function listHistory(req, res) {
 }
 
 async function toggleFavorite(req, res) {
-  const item = db.history.findById(req.params.id);
-  if (!item || item.userId !== req.userId) {
-    return res.status(404).json({ error: 'Comparison not found.' });
+  try {
+    const item = await db.history.findById(req.params.id);
+    if (!item || item.userId !== String(req.userId)) {
+      return res.status(404).json({ error: 'Comparison not found.' });
+    }
+    const updated = await db.history.toggleFavorite(req.params.id);
+    return res.json({ item: updated });
+  } catch (err) {
+    console.error('toggleFavorite error:', err);
+    return res.status(500).json({ error: 'Could not update favorite.' });
   }
-  const updated = db.history.toggleFavorite(req.params.id);
-  return res.json({ item: updated });
 }
 
 async function deleteHistory(req, res) {
-  const item = db.history.findById(req.params.id);
-  if (!item || item.userId !== req.userId) {
-    return res.status(404).json({ error: 'Comparison not found.' });
+  try {
+    const item = await db.history.findById(req.params.id);
+    if (!item || item.userId !== String(req.userId)) {
+      return res.status(404).json({ error: 'Comparison not found.' });
+    }
+    await db.history.remove(req.params.id);
+    return res.status(204).send();
+  } catch (err) {
+    console.error('deleteHistory error:', err);
+    return res.status(500).json({ error: 'Could not delete comparison.' });
   }
-  db.history.remove(req.params.id);
-  return res.status(204).send();
 }
 
 module.exports = { createHistory, listHistory, toggleFavorite, deleteHistory };
